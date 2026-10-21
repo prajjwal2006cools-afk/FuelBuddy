@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | FUEL BUDDY</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        @media (min-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        .header-spacer {
+            height: 80px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--secondary-color), #1a2a50);
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 22v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"></path>
+                    <path d="M6 12v-4a6 6 0 0 1 12 0v4"></path>
+                    <path d="M12 9v.01"></path>
+                </svg>
+                FUEL BUDDY
+            </a>
+            <div class="nav-links">
+                <a href="fuel-guide.html" class="nav-link">Fuel Guide</a>
+                <a href="stations.html" class="nav-link">Stations</a>
+                <a href="ev.html" class="nav-link">EV</a>
+                <a href="trip-planner.html" class="nav-link">Trip Planner</a>
+                <a href="#" class="btn btn-secondary" id="logout-btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <main class="container">
+        <h1 class="mt-2">Welcome Back</h1>
+        <p class="text-light mb-2">Phone: <span id="user-phone">...</span></p>
+
+        <div class="stat-card">
+            <h2 style="color:white;">Your Fuel AI Insights</h2>
+            <p>Based on our machine learning models, fuel prices are expected to drop by ₹1.2/L next week. <strong>Wait
+                    to fill up if you have more than 25% tank left.</strong></p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Sidebar: Add Vehicle -->
+            <div>
+                <div class="glass-card">
+                    <h3>Add Vehicle</h3>
+                    <form id="add-vehicle-form" class="mt-1">
+                        <div class="form-group">
+                            <label class="form-label">Year & Make</label>
+                            <div style="display:flex; gap:10px;">
+                                <input type="number" id="year" class="form-control" placeholder="2023" required
+                                    min="1990" max="2025" style="width: 80px;">
+                                <input type="text" id="make" class="form-control" placeholder="Toyota" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Model & Trim</label>
+                            <div style="display:flex; gap:10px;">
+                                <input type="text" id="model" class="form-control" placeholder="Camry" required>
+                                <input type="text" id="trim" class="form-control" placeholder="XLE" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fuel Details</label>
+                            <select id="fuel-type" class="form-control mb-1" required>
+                                <option value="" disabled selected>Fuel Type</option>
+                                <option value="Petrol">Petrol</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="CNG">CNG</option>
+                                <option value="EV">EV</option>
+                            </select>
+                            <input type="text" id="fuel-grade" class="form-control mb-1"
+                                placeholder="Grade (e.g. XP95, Regular)" required>
+                            <input type="number" id="tank-size" class="form-control"
+                                placeholder="Tank Size (L) / Battery (kWh)" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Efficiency (km/L or kWh/100km)</label>
+                            <div style="display:flex; gap:10px;">
+                                <input type="number" id="city-mpg" class="form-control" placeholder="City" step="0.1"
+                                    required>
+                                <input type="number" id="highway-mpg" class="form-control" placeholder="Highway"
+                                    step="0.1" required>
+                            </div>
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                            <input type="checkbox" id="is-default">
+                            <label for="is-default" style="margin:0;">Set as default vehicle</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;">Save Vehicle</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Main: My Vehicles -->
+            <div>
+                <h2>My Vehicles</h2>
+                <div id="vehicles-container" class="mt-1">
+                    <!-- Loaded via JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

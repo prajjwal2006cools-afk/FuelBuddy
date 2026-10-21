@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Planner | FUEL BUDDY</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .header-spacer { height: 80px; }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        @media (min-width: 992px) {
+            .grid-layout { grid-template-columns: 1fr 2fr; }
+        }
+        .stat-box {
+            background: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">FUEL BUDDY</a>
+            <div class="nav-links">
+                <a href="fuel-guide.html" class="nav-link">Fuel Guide</a>
+                <a href="stations.html" class="nav-link">Stations</a>
+                <a href="ev.html" class="nav-link">EV</a>
+                <a href="trip-planner.html" class="nav-link" style="color:var(--primary-color);">Trip Planner</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <main class="container mb-2">
+        <h1 class="mt-2 mb-2">Trip Cost Calculator</h1>
+
+        <div class="grid-layout">
+            <div>
+                <div class="glass-card">
+                    <form id="trip-form">
+                        <div class="form-group">
+                            <label class="form-label">Route</label>
+                            <input type="text" id="origin" class="form-control mb-1" placeholder="Origin (e.g. Mumbai)" required>
+                            <input type="text" id="destination" class="form-control" placeholder="Destination (e.g. Pune)" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Vehicle</label>
+                            <select id="vehicle-select" class="form-control mb-1">
+                                <option value="">Custom Vehicle...</option>
+                            </select>
+                            <div style="display:flex; gap:10px;">
+                                <input type="number" id="city-mpg" class="form-control" placeholder="City km/L" step="0.1" required>
+                                <input type="number" id="highway-mpg" class="form-control" placeholder="Hwy km/L" step="0.1" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Estimated Fuel Price (₹/L)</label>
+                            <input type="number" id="fuel-price" class="form-control" placeholder="100.0" step="0.01">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width:100%;">Calculate Cost</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="result-section" style="display: none;">
+                <div class="glass-card" style="background: linear-gradient(135deg, var(--secondary-color), #1a2a50); color:white;">
+                    <h2 style="color:white; margin-bottom:1.5rem;">Trip Estimates</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem;">
+                        <div class="stat-box" style="background:rgba(255,255,255,0.1); border:none;">
+                            <div style="font-size:0.9rem; opacity:0.8;">Total Distance</div>
+                            <div class="stat-value" id="res-dist" style="color:white;">--</div>
+                        </div>
+                        <div class="stat-box" style="background:rgba(255,255,255,0.1); border:none;">
+                            <div style="font-size:0.9rem; opacity:0.8;">Estimated Cost</div>
+                            <div class="stat-value" id="res-cost" style="color:var(--highlight-color);">--</div>
+                        </div>
+                        <div class="stat-box" style="background:rgba(255,255,255,0.1); border:none;">
+                            <div style="font-size:0.9rem; opacity:0.8;">Fuel Needed</div>
+                            <div class="stat-value" id="res-fuel" style="color:white;">--</div>
+                        </div>
+                        <div class="stat-box" style="background:rgba(255,255,255,0.1); border:none;">
+                            <div style="font-size:0.9rem; opacity:0.8;">CO₂ Footprint</div>
+                            <div class="stat-value" id="res-co2" style="color:white;">--</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card mt-2">
+                    <h3 class="mb-1">AI Recommendation</h3>
+                    <p>Based on your route and tank size, you should refuel near <strong>Lonavala</strong> where prices are ₹1.5/L cheaper than the average route price. This could save you approximately ₹60.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/trip.js"></script>
+</body>
+</html>

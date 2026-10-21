@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071426">
+    <title>Login | FUEL BUDDY</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        :root {
+            --fb-bg: #071426;
+            --fb-panel: #142338;
+            --fb-text: #f4fbff;
+            --fb-muted: #b5c6d6;
+            --fb-green: #35e6a1;
+            --fb-teal: #48d9c8;
+            --fb-border: rgba(159, 205, 213, .17);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--fb-text);
+            background:
+                radial-gradient(ellipse at 85% 15%, rgba(53, 230, 161, .09), transparent 36%),
+                #071426;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        .split-layout {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .split-image {
+            flex: 1.02;
+            min-height: 100vh;
+            background:
+                linear-gradient(90deg, rgba(4, 13, 25, .72), rgba(4, 13, 25, .3)),
+                linear-gradient(0deg, rgba(4, 13, 25, .45), rgba(4, 13, 25, .12)),
+                url('assets/img/hero.jpg') center/cover no-repeat;
+            position: relative;
+            display: none;
+            isolation: isolate;
+            overflow: hidden;
+        }
+
+        .split-image::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 50% 42%, rgba(53, 230, 161, .14), transparent 55%),
+                linear-gradient(135deg, rgba(7, 20, 38, .12), rgba(7, 20, 38, .6));
+            z-index: -1;
+        }
+
+        .split-image::after {
+            content: "";
+            position: absolute;
+            width: 70%;
+            aspect-ratio: 1;
+            left: -20%;
+            bottom: -40%;
+            border: 1px solid rgba(72, 217, 200, .22);
+            border-radius: 50%;
+            box-shadow: 0 0 0 32px rgba(72, 217, 200, .025), 0 0 0 70px rgba(53, 230, 161, .02);
+            animation: slow-orbit 32s linear infinite;
+            pointer-events: none;
+        }
+
+        /* Animated Fuel Buddy backdrop: floating fuel/EV icons and road-light streaks */
+        .login-atmosphere {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 55% 40%, rgba(53, 230, 161, .12), transparent 45%),
+                linear-gradient(135deg, rgba(4, 13, 25, .12), rgba(4, 13, 25, .3));
+        }
+
+        .login-atmosphere .orbit-ring {
+            position: absolute;
+            width: 390px;
+            height: 390px;
+            border: 1px solid rgba(72, 217, 200, .18);
+            border-radius: 50%;
+            right: -110px;
+            top: 8%;
+            box-shadow: 0 0 0 32px rgba(72, 217, 200, .025), 0 0 0 72px rgba(53, 230, 161, .018);
+            animation: login-orbit 36s linear infinite;
+        }
+
+        .login-float {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 13px;
+            border: 1px solid rgba(113, 255, 208, .22);
+            border-radius: 9px;
+            background: rgba(5, 24, 35, .48);
+            color: rgba(201, 255, 235, .88);
+            font-size: .69rem;
+            font-weight: 800;
+            letter-spacing: .14em;
+            white-space: nowrap;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 24px rgba(53, 230, 161, .07), inset 0 1px 0 rgba(255, 255, 255, .04);
+            animation: login-float 13s ease-in-out infinite;
+        }
+
+        .login-float .float-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+            color: var(--fb-green);
+            filter: drop-shadow(0 0 8px rgba(53, 230, 161, .55));
+        }
+
+        .login-float.fuel-one {
+            top: 16%;
+            left: 10%;
+            animation-delay: -2s;
+        }
+
+        .login-float.fuel-two {
+            top: 27%;
+            right: 10%;
+            animation-delay: -7s;
+        }
+
+        .login-float.fuel-three {
+            bottom: 22%;
+            left: 13%;
+            animation-delay: -4s;
+        }
+
+        .login-float.fuel-four {
+            bottom: 13%;
+            right: 12%;
+            animation-delay: -10s;
+        }
+
+        .road-light {
+            position: absolute;
+            height: 1px;
+            width: 35%;
+            background: linear-gradient(90deg, transparent, rgba(72, 217, 200, .7), transparent);
+            box-shadow: 0 0 12px rgba(72, 217, 200, .4);
+            transform: rotate(-17deg);
+            animation: light-drift 8s ease-in-out infinite;
+        }
+
+        .road-light.light-one {
+            left: -8%;
+            bottom: 25%;
+        }
+
+        .road-light.light-two {
+            left: 32%;
+            bottom: 38%;
+            animation-delay: -4s;
+            opacity: .6;
+        }
+
+        .welcome-content {
+            z-index: 2;
+        }
+
+        @keyframes login-float {
+
+            0%,
+            100% {
+                transform: translate3d(0, 0, 0) rotate(-2deg);
+                opacity: .52;
+            }
+
+            35% {
+                transform: translate3d(10px, -18px, 0) rotate(1deg);
+                opacity: .95;
+            }
+
+            70% {
+                transform: translate3d(-8px, -30px, 0) rotate(2deg);
+                opacity: .68;
+            }
+        }
+
+        @keyframes login-orbit {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes light-drift {
+
+            0%,
+            100% {
+                transform: translate3d(-15px, 0, 0) rotate(-17deg);
+                opacity: .2;
+            }
+
+            50% {
+                transform: translate3d(45px, -8px, 0) rotate(-17deg);
+                opacity: .8;
+            }
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 2;
+            padding: clamp(2rem, 4vw, 4rem);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100vh;
+            max-width: 740px;
+        }
+
+        .welcome-kicker {
+            color: #baffdf;
+            font-size: .74rem;
+            font-weight: 800;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            margin: 0 0 18px;
+        }
+
+        .welcome-title {
+            font-size: clamp(2.6rem, 4.4vw, 4.8rem);
+            letter-spacing: -.06em;
+            line-height: .98;
+            margin: 0 0 20px;
+            color: white;
+            font-weight: 800;
+        }
+
+        .welcome-title span {
+            display: block;
+            color: transparent;
+            background: linear-gradient(100deg, var(--fb-green), var(--fb-teal), #d2fff0);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .welcome-copy {
+            max-width: 540px;
+            color: #d1dfe7;
+            font-size: clamp(1rem, 1.3vw, 1.2rem);
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        .split-content {
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 7rem 2rem 2rem;
+            position: relative;
+            background:
+                radial-gradient(ellipse at 70% 15%, rgba(72, 217, 200, .07), transparent 42%),
+                #0b1629;
+        }
+
+        .brand {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--fb-green) !important;
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 1.15rem;
+            letter-spacing: .08em;
+            text-shadow: 0 0 20px rgba(53, 230, 161, .18);
+        }
+
+        .brand svg {
+            filter: drop-shadow(0 0 8px rgba(53, 230, 161, .25));
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 430px;
+            padding: clamp(1.5rem, 3vw, 2.2rem);
+            border: 1px solid var(--fb-border);
+            border-radius: 18px;
+            background: linear-gradient(145deg, rgba(23, 39, 59, .96), rgba(15, 29, 47, .98));
+            box-shadow: 0 28px 80px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .035);
+            backdrop-filter: blur(18px);
+            animation: card-enter .65s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .dev-banner {
+            color: #c9fff0;
+            background: rgba(53, 230, 161, .08);
+            border: 1px solid rgba(53, 230, 161, .25);
+            padding: .8rem .9rem;
+            text-align: center;
+            font-weight: 650;
+            font-size: .8rem;
+            line-height: 1.5;
+            border-radius: 9px;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -.045em;
+            margin: 0 0 .5rem;
+            color: #f4fbff;
+        }
+
+        .auth-header p {
+            margin: 0;
+            color: var(--fb-muted);
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: .6rem;
+            color: #e4eef5;
+            font-size: .88rem;
+            font-weight: 700;
+        }
+
+        .phone-input-group {
+            display: flex;
+            gap: .7rem;
+        }
+
+        .country-select {
+            width: 108px;
+            flex: 0 0 108px;
+        }
+
+        .form-control {
+            width: 100%;
+            min-width: 0;
+            min-height: 47px;
+            padding: .8rem .9rem;
+            border-radius: 9px;
+            color: #f4fbff !important;
+            background: rgba(5, 17, 31, .5) !important;
+            border: 1px solid rgba(159, 205, 213, .2) !important;
+            outline: none;
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .form-control::placeholder {
+            color: #8197aa;
+        }
+
+        .form-control:focus {
+            border-color: var(--fb-green) !important;
+            box-shadow: 0 0 0 3px rgba(53, 230, 161, .12) !important;
+            background: rgba(5, 17, 31, .8) !important;
+        }
+
+        select.form-control option {
+            color: #f4fbff;
+            background: #142338;
+        }
+
+        .btn.btn-primary,
+        button.btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: .85rem 1.1rem;
+            color: #04251a !important;
+            background: linear-gradient(110deg, #35e6a1, #48d9c8) !important;
+            border: 1px solid rgba(72, 217, 200, .65) !important;
+            border-radius: 999px !important;
+            box-shadow: 0 8px 24px rgba(53, 230, 161, .2) !important;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+
+        .btn.btn-primary:hover,
+        button.btn-primary:hover {
+            color: #04251a !important;
+            background: linear-gradient(110deg, #75f3c2, #72f0e1) !important;
+            box-shadow: 0 12px 30px rgba(53, 230, 161, .34) !important;
+            transform: translateY(-2px);
+        }
+
+        .btn.btn-primary:active,
+        button.btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn:not(.btn-primary) {
+            color: #baffdf !important;
+            border: 1px solid rgba(72, 217, 200, .28) !important;
+            border-radius: 999px !important;
+        }
+
+        #otp-step {
+            display: none;
+        }
+
+        .otp-input {
+            text-align: center;
+            font-size: 1.5rem;
+            letter-spacing: .5rem;
+            font-weight: 700;
+        }
+
+        .auth-footer {
+            margin: 1.25rem 0 0;
+            color: #8299ac;
+            font-size: .75rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        @keyframes card-enter {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slow-orbit {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .split-image {
+                display: block;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .split-content {
+                min-height: 100vh;
+                padding: 7rem 1.1rem 2rem;
+            }
+
+            .brand {
+                top: 1.5rem;
+                left: 1.25rem;
+            }
+
+            .auth-card {
+                max-width: 460px;
+            }
+
+            .welcome-content {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="split-layout">
+        <div class="split-image">
+            <div class="login-atmosphere" aria-hidden="true">
+                <div class="orbit-ring"></div>
+                <div class="login-float fuel-one"><span class="float-icon">⛽</span><span>PETROL</span></div>
+                <div class="login-float fuel-two"><span class="float-icon">⚡</span><span>EV CHARGE</span></div>
+                <div class="login-float fuel-three"><span class="float-icon">▰</span><span>DIESEL</span></div>
+                <div class="login-float fuel-four"><span class="float-icon">ϟ</span><span>ELECTRIC</span></div>
+                <div class="road-light light-one"></div>
+                <div class="road-light light-two"></div>
+            </div>
+            <div class="welcome-content">
+                <p class="welcome-kicker">Your smarter driving companion</p>
+                <h1 class="welcome-title">Welcome back.<span>Let's get moving.</span></h1>
+                <p class="welcome-copy">Sign in to access your dashboard, saved trips, and personalized Fuel Buddy
+                    features.</p>
+            </div>
+        </div>
+
+        <div class="split-content">
+            <a href="/" class="brand" aria-label="Fuel Buddy home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 22v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"></path>
+                    <path d="M6 12v-4a6 6 0 0 1 12 0v4"></path>
+                    <path d="M12 9v.01"></path>
+                </svg>
+                FUEL BUDDY
+            </a>
+
+            <div class="auth-card glass-card">
+                <div class="dev-banner">DEV MODE: OTPs will be printed to server console</div>
+
+                <div id="phone-step">
+                    <div class="auth-header">
+                        <h2 class="auth-title">Sign In</h2>
+                        <p>Enter your phone number to continue</p>
+                    </div>
+                    <form id="phone-form">
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Phone Number</label>
+                            <div class="phone-input-group">
+                                <select class="form-control country-select" id="country-code"
+                                    aria-label="Country calling code">
+                                    <option value="+91">+91 (IN)</option>
+                                    <option value="+1">+1 (US)</option>
+                                    <option value="+44">+44 (UK)</option>
+                                </select>
+                                <input type="tel" class="form-control" id="phone" placeholder="99999 99999" required
+                                    autocomplete="tel">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%">Send OTP</button>
+                    </form>
+                </div>
+
+                <div id="otp-step">
+                    <div class="auth-header">
+                        <h2 class="auth-title">Verify OTP</h2>
+                        <p>Sent to <span id="display-phone" style="font-weight: 700; color: var(--fb-green)"></span></p>
+                    </div>
+                    <form id="otp-form">
+                        <div class="form-group">
+                            <label class="form-label" for="otp">6-Digit Code</label>
+                            <input type="text" class="form-control otp-input" id="otp" maxlength="6" pattern="\d{6}"
+                                placeholder="------" required autocomplete="one-time-code" inputmode="numeric">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%">Verify &amp; Login</button>
+                        <button type="button" class="btn"
+                            style="width: 100%; margin-top: 1rem; background: transparent;"
+                            onclick="location.reload()">Use a different number</button>
+                    </form>
+                </div>
+                <p class="auth-footer">Secure sign-in for your Fuel Buddy account.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/login.js"></script>
+</body>
+
+</html>

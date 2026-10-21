@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Chargers | FUEL BUDDY</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root { --primary-color: #00C2A8; --primary-hover: #00a38d; }
+        .header-spacer { height: 80px; }
+        .map-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            height: calc(100vh - 80px);
+        }
+        @media (min-width: 992px) {
+            .map-layout { grid-template-columns: 350px 1fr; }
+        }
+        #map { width: 100%; height: 100%; min-height: 300px; z-index: 1;}
+        .sidebar-list { overflow-y: auto; padding: 1rem; background: var(--bg-color); }
+    </style>
+</head>
+<body style="overflow: hidden;">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand" style="color:var(--primary-color);">FUEL BUDDY EV</a>
+            <div class="nav-links">
+                <a href="fuel-guide.html" class="nav-link">Fuel Guide</a>
+                <a href="stations.html" class="nav-link">Stations</a>
+                <a href="ev.html" class="nav-link" style="color:var(--primary-color);">EV</a>
+                <a href="trip-planner.html" class="nav-link">Trip Planner</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <div class="map-layout">
+        <div class="sidebar-list">
+            <h2 class="mb-1">Nearby Chargers</h2>
+            <div id="charger-list"></div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const map = L.map('map').setView([28.6139, 77.2090], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            try {
+                const chargers = await fetchAPI('/ev/chargers');
+                const list = document.getElementById('charger-list');
+                
+                chargers.forEach(c => {
+                    const lat = c.AddressInfo ? c.AddressInfo.Latitude : c.lat;
+                    const lng = c.AddressInfo ? c.AddressInfo.Longitude : c.lng;
+                    const name = c.AddressInfo ? c.AddressInfo.Title : c.name;
+                    
+                    L.marker([lat, lng]).addTo(map).bindPopup(`<b>${name}</b>`);
+                    
+                    const el = document.createElement('div');
+                    el.className = 'glass-card mb-1';
+                    el.style.padding = '1rem';
+                    el.style.borderColor = 'var(--primary-color)';
+                    el.innerHTML = `
+                        <h4 style="margin-bottom:0.5rem; color:var(--primary-color);">${name}</h4>
+                        <div style="font-size:0.9rem;">
+                            <span>Type: ${c.type || 'Unknown'}</span> | <span>Power: ${c.power_kw || '?'} kW</span>
+                        </div>
+                        <p class="text-light" style="font-size:0.8rem; margin-top:0.5rem;">Cost: ${c.cost || 'Varies'}</p>
+                    `;
+                    list.appendChild(el);
+                });
+            } catch (error) {
+                showToast('Failed to load EV chargers', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

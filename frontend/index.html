@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071426">
+  <meta name="description" content="Fuel Buddy helps you plan smarter trips, find fuel stations, and explore EV charging options.">
+  <title>FUEL BUDDY | Drive Smarter</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    :root {
+      --ink: #f5fbff;
+      --muted: #c0ced8;
+      --green: #35e6a1;
+      --teal: #48d9c8;
+      --line: rgba(255,255,255,.18);
+      --nav-height: 74px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+    body {
+      margin: 0; background: #071426; color: var(--ink);
+      font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    a { -webkit-tap-highlight-color: transparent; }
+    .site-nav {
+      position: fixed; z-index: 1000; inset: 0 0 auto;
+      min-height: var(--nav-height); padding: 0 clamp(18px, 4vw, 62px);
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      background: linear-gradient(180deg, rgba(3,12,22,.76), rgba(3,12,22,.25));
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(14px);
+      transition: background .3s ease, border-color .3s ease;
+    }
+    .site-nav.scrolled { background: rgba(4,14,25,.94); border-color: var(--line); }
+    .brand {
+      display: inline-flex; align-items: center; gap: 11px; flex-shrink: 0;
+      color: #fff; text-decoration: none; font-size: 1rem; font-weight: 850;
+      letter-spacing: .19em;
+    }
+    .brand-mark { color: var(--green); display: inline-flex; filter: drop-shadow(0 0 10px rgba(53,230,161,.3)); }
+    .nav-links { display: flex; align-items: center; gap: clamp(14px, 2.4vw, 34px); }
+    .nav-link {
+      position: relative; padding: 10px 0; color: rgba(255,255,255,.9);
+      text-decoration: none; font-size: .83rem; font-weight: 650;
+      letter-spacing: .015em; transition: color .2s ease;
+    }
+    .nav-link::after {
+      content: ""; position: absolute; left: 0; right: 100%; bottom: 2px; height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+      transition: right .25s ease;
+    }
+    .nav-link:hover { color: var(--green); }
+    .nav-link:hover::after { right: 0; }
+    .nav-login {
+      color: #041d15; background: linear-gradient(110deg, var(--green), var(--teal));
+      padding: 11px 17px; border-radius: 4px; text-decoration: none; font-size: .82rem;
+      font-weight: 800; letter-spacing: .02em; transition: transform .2s, box-shadow .2s;
+    }
+    .nav-login:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #35e6a133; }
+
+    .hero {
+      position: relative; min-height: 100svh; display: grid; place-items: center;
+      padding: 130px 24px 100px; isolation: isolate; overflow: hidden;
+      background: #071426 url('assets/img/hero.jpg') center 54% / cover no-repeat;
+      scroll-snap-align: start;
+    }
+    .hero::before {
+      content: ""; position: absolute; inset: 0; z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(3,12,22,.86) 0%, rgba(3,12,22,.48) 49%, rgba(3,12,22,.15) 100%),
+        linear-gradient(0deg, rgba(3,12,22,.82), transparent 45%, rgba(3,12,22,.15));
+    }
+    .hero::after {
+      content: ""; position: absolute; z-index: -1; width: min(65vw, 850px); aspect-ratio: 1;
+      right: -20%; top: 6%; border-radius: 50%; border: 1px solid rgba(72,217,200,.17);
+      box-shadow: 0 0 0 42px rgba(72,217,200,.025), 0 0 0 90px rgba(53,230,161,.018);
+      animation: slow-rotate 38s linear infinite;
+    }
+    .hero-content { width: min(1240px, 100%); margin: auto; animation: enter .9s cubic-bezier(.2,.8,.2,1) both; }
+    .hero-copy { max-width: 720px; }
+    .overline {
+      display: inline-flex; align-items: center; gap: 10px; margin: 0 0 23px;
+      color: #c9ffeb; font-size: .73rem; letter-spacing: .22em; font-weight: 800;
+      text-transform: uppercase;
+    }
+    .overline::before { content: ""; width: 26px; height: 2px; background: var(--green); box-shadow: 0 0 12px #35e6a1aa; }
+    h1 {
+      margin: 0; max-width: 800px; font-size: clamp(3.4rem, 8vw, 7.5rem);
+      line-height: .92; letter-spacing: -.075em; font-weight: 750; text-wrap: balance;
+    }
+    h1 span {
+      display: block; color: transparent;
+      background: linear-gradient(95deg, var(--green), var(--teal) 65%, #d4fff1);
+      -webkit-background-clip: text; background-clip: text;
+    }
+    .hero-description {
+      max-width: 530px; margin: 27px 0 31px; color: #d1dce5;
+      font-size: clamp(1rem, 1.4vw, 1.16rem); line-height: 1.75; font-weight: 400;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .action {
+      min-width: 205px; min-height: 48px; padding: 14px 20px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+      border: 1px solid transparent; border-radius: 4px; text-decoration: none;
+      font-size: .82rem; font-weight: 800; letter-spacing: .035em;
+      transition: transform .22s ease, background .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+    .action:hover { transform: translateY(-3px); }
+    .action-primary { background: var(--green); color: #06251a; box-shadow: 0 8px 25px #35e6a126; }
+    .action-primary:hover { background: #75f3c2; box-shadow: 0 12px 32px #35e6a14d; }
+    .action-ghost { color: #fff; border-color: rgba(255,255,255,.65); background: rgba(5,18,29,.28); backdrop-filter: blur(8px); }
+    .action-ghost:hover { border-color: var(--green); background: rgba(53,230,161,.12); }
+    .hero-caption {
+      margin-top: 27px; color: rgba(234,245,250,.72); font-size: .73rem;
+      letter-spacing: .09em; text-transform: uppercase;
+    }
+    .hero-caption b { color: var(--green); font-weight: 800; }
+
+    .scroll-cue {
+      position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 9px;
+      color: rgba(255,255,255,.72); font-size: .62rem; font-weight: 750;
+      letter-spacing: .2em; text-transform: uppercase; text-decoration: none;
+    }
+    .scroll-cue span { width: 1px; height: 34px; background: linear-gradient(var(--green), transparent); animation: cue 1.7s ease-in-out infinite; }
+
+    .feature-section {
+      position: relative; padding: clamp(62px, 8vw, 112px) 24px;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(53,230,161,.08), transparent 55%),
+        #071426;
+    }
+    .section-inner { width: min(1240px, 100%); margin: auto; }
+    .section-heading { margin-bottom: 30px; }
+    .section-kicker { margin: 0 0 12px; color: var(--green); font-size: .72rem; font-weight: 850; letter-spacing: .2em; text-transform: uppercase; }
+    .section-heading h2 { margin: 0; max-width: 760px; font-size: clamp(2rem, 4.5vw, 4rem); letter-spacing: -.055em; line-height: 1.05; }
+    .section-heading p { max-width: 600px; margin: 16px 0 0; color: var(--muted); line-height: 1.7; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .feature-card {
+      position: relative; min-height: 285px; padding: 26px; overflow: hidden;
+      display: flex; flex-direction: column; align-items: flex-start;
+      color: inherit; text-decoration: none; border: 1px solid var(--line); border-radius: 5px;
+      background: linear-gradient(145deg, rgba(17,44,61,.88), rgba(7,24,40,.96));
+      transition: transform .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
+    }
+    .feature-card::after {
+      content: ""; position: absolute; width: 180px; height: 180px; right: -65px; top: -70px;
+      border: 1px solid rgba(72,217,200,.18); border-radius: 50%;
+      box-shadow: 0 0 0 24px rgba(72,217,200,.025), 0 0 0 50px rgba(53,230,161,.018);
+      transition: transform .4s ease;
+    }
+    .feature-card:hover { transform: translateY(-7px); border-color: rgba(53,230,161,.5); box-shadow: 0 20px 48px rgba(0,0,0,.23), 0 0 25px rgba(53,230,161,.045); }
+    .feature-card:hover::after { transform: scale(1.14) rotate(12deg); }
+    .feature-icon {
+      width: 46px; height: 46px; display: grid; place-items: center; margin-bottom: auto;
+      border: 1px solid rgba(53,230,161,.24); border-radius: 5px; color: var(--green);
+      background: rgba(53,230,161,.07);
+    }
+    .feature-icon svg { width: 23px; height: 23px; }
+    .feature-card h3 { margin: 34px 0 9px; font-size: 1.16rem; letter-spacing: -.02em; }
+    .feature-card p { margin: 0; max-width: 330px; color: var(--muted); font-size: .9rem; line-height: 1.7; }
+    .card-arrow { margin-top: 22px; color: var(--green); font-size: 1.1rem; transition: transform .2s; }
+    .feature-card:hover .card-arrow { transform: translateX(5px); }
+    .bottom-line {
+      margin-top: 24px; padding: 17px 0 0; border-top: 1px solid var(--line);
+      color: #8fa7b8; font-size: .73rem; letter-spacing: .045em;
+    }
+
+    @keyframes enter { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slow-rotate { to { transform: rotate(360deg); } }
+    @keyframes cue { 50% { opacity: .45; transform: scaleY(.7); transform-origin: top; } }
+
+    /* Floating fuel/EV symbols: decorative background animation */
+    .fuel-symbol-field {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+      opacity: .8;
+    }
+    .fuel-symbol {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 13px;
+      color: rgba(173, 255, 224, .78);
+      border: 1px solid rgba(72, 217, 200, .2);
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(7, 31, 42, .35), rgba(10, 44, 48, .12));
+      box-shadow: 0 0 24px rgba(53, 230, 161, .045), inset 0 1px 0 rgba(255,255,255,.035);
+      backdrop-filter: blur(3px);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      white-space: nowrap;
+      animation: fuel-float 18s ease-in-out infinite;
+    }
+    .fuel-symbol .symbol-icon {
+      color: var(--green);
+      font-size: 1.35rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px rgba(53,230,161,.35));
+    }
+    .fuel-symbol .symbol-label { opacity: .9; }
+    .fuel-symbol.s1 { left: 8%; top: 22%; animation-delay: -2s; }
+    .fuel-symbol.s2 { right: 12%; top: 27%; animation-delay: -9s; }
+    .fuel-symbol.s3 { left: 17%; bottom: 19%; animation-delay: -5s; }
+    .fuel-symbol.s4 { right: 8%; bottom: 20%; animation-delay: -12s; }
+    .fuel-symbol.s5 { left: 48%; top: 17%; animation-delay: -14s; }
+    .fuel-symbol.s6 { right: 29%; bottom: 13%; animation-delay: -7s; }
+    @keyframes fuel-float {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(-3deg); opacity: .32; }
+      25% { transform: translate3d(12px, -22px, 0) rotate(2deg); opacity: .82; }
+      50% { transform: translate3d(-5px, -38px, 0) rotate(-1deg); opacity: .55; }
+      75% { transform: translate3d(-16px, -14px, 0) rotate(3deg); opacity: .9; }
+    }
+    @media (max-width: 650px) {
+      .fuel-symbol { transform: scale(.82); padding: 8px 9px; font-size: .61rem; }
+      .fuel-symbol.s2 { right: 2%; top: 32%; }
+      .fuel-symbol.s4 { right: 1%; bottom: 14%; }
+      .fuel-symbol.s5 { left: auto; right: 7%; top: 17%; }
+      .fuel-symbol.s6 { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fuel-symbol { animation: none; }
+    }
+
+    @media (max-width: 850px) {
+      .site-nav { padding: 0 20px; }
+      .nav-links { gap: 14px; }
+      .nav-link { font-size: .77rem; }
+      .feature-grid { grid-template-columns: 1fr 1fr; }
+      .hero::before { background: linear-gradient(90deg, rgba(3,12,22,.9), rgba(3,12,22,.56)), linear-gradient(0deg, rgba(3,12,22,.65), transparent 60%); }
+    }
+    @media (max-width: 650px) {
+      :root { --nav-height: 66px; }
+      .site-nav { position: absolute; align-items: flex-start; flex-direction: column; gap: 8px; padding: 14px 16px 12px; }
+      .brand { font-size: .92rem; }
+      .nav-links { width: 100%; gap: 0; justify-content: space-between; flex-wrap: wrap; }
+      .nav-link { font-size: .68rem; padding: 5px 0; }
+      .nav-login { font-size: .69rem; padding: 8px 10px; }
+      .hero { min-height: 100svh; padding: 158px 21px 94px; background-position: 60% center; }
+      .hero::after { width: 110vw; right: -60%; top: 15%; }
+      h1 { font-size: clamp(3.2rem, 14vw, 5.3rem); }
+      .hero-description { font-size: .97rem; }
+      .hero-actions { flex-direction: column; align-items: stretch; max-width: 340px; }
+      .action { width: 100%; }
+      .scroll-cue { bottom: 16px; }
+      .feature-section { padding: 64px 17px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .feature-card { min-height: 235px; padding: 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+
+    /* Final theme override: keep the navbar login CTA emerald, regardless of shared CSS. */
+    .site-nav .nav-login,
+    .site-nav #auth-btn {
+      color: #04251a !important;
+      background: linear-gradient(110deg, #35e6a1, #48d9c8) !important;
+      background-color: #35e6a1 !important;
+      border: 1px solid rgba(72, 217, 200, .65) !important;
+      border-radius: 4px !important;
+      box-shadow: 0 8px 24px rgba(53, 230, 161, .2) !important;
+      font-weight: 800 !important;
+      text-decoration: none !important;
+      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease !important;
+    }
+    .site-nav .nav-login:hover,
+    .site-nav #auth-btn:hover {
+      color: #04251a !important;
+      background: linear-gradient(110deg, #75f3c2, #72f0e1) !important;
+      box-shadow: 0 12px 30px rgba(53, 230, 161, .35) !important;
+      transform: translateY(-2px);
+      filter: brightness(1.02);
+    }
+    .site-nav .nav-login:focus-visible,
+    .site-nav #auth-btn:focus-visible {
+      outline: 2px solid #35e6a1 !important;
+      outline-offset: 4px;
+    }
+
+  </style>
+</head>
+<body>
+  <nav class="site-nav" id="site-nav">
+    <a href="/" class="brand" aria-label="Fuel Buddy home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 22v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"></path><path d="M6 12v-4a6 6 0 0 1 12 0v4"></path><path d="M12 9v.01"></path>
+        </svg>
+      </span>
+      FUEL BUDDY
+    </a>
+    <div class="nav-links">
+      <a href="fuel-guide.html" class="nav-link">Fuel Guide</a>
+      <a href="stations.html" class="nav-link">Stations</a>
+      <a href="ev.html" class="nav-link">EV</a>
+      <a href="trip-planner.html" class="nav-link">Trip Planner</a>
+      <a href="login.html" class="nav-login" id="auth-btn">LOGIN ↗</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero" aria-label="Fuel Buddy introduction">
+      <div class="fuel-symbol-field" aria-hidden="true">
+        <div class="fuel-symbol s1"><span class="symbol-icon">⛽</span><span class="symbol-label">PETROL</span></div>
+        <div class="fuel-symbol s2"><span class="symbol-icon">⚡</span><span class="symbol-label">EV CHARGE</span></div>
+        <div class="fuel-symbol s3"><span class="symbol-icon">▰</span><span class="symbol-label">DIESEL</span></div>
+        <div class="fuel-symbol s4"><span class="symbol-icon">ϟ</span><span class="symbol-label">ELECTRIC</span></div>
+        <div class="fuel-symbol s5"><span class="symbol-icon">⛽</span><span class="symbol-label">FUEL UP</span></div>
+        <div class="fuel-symbol s6"><span class="symbol-icon">⚡</span><span class="symbol-label">CHARGE</span></div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-copy">
+          <p class="overline">Your smarter driving companion</p>
+          <h1>Fuel smarter.<span>Drive further.</span></h1>
+          <p class="hero-description">A better way to plan your route, find fuel stations, and explore electric driving. Make every journey feel a little more effortless.</p>
+          <div class="hero-actions">
+            <a href="trip-planner.html" class="action action-primary">PLAN A TRIP <span aria-hidden="true">↗</span></a>
+            <a href="stations.html" class="action action-ghost">FIND FUEL / CHARGERS <span aria-hidden="true">↗</span></a>
+          </div>
+          <p class="hero-caption"><b>Fuel Buddy</b> &nbsp; / &nbsp; Plan well. Go further.</p>
+        </div>
+      </div>
+      <a href="#features" class="scroll-cue" aria-label="Scroll to explore features">EXPLORE <span></span></a>
+    </section>
+
+    <section class="feature-section" id="features">
+      <div class="section-inner">
+        <div class="section-heading">
+          <p class="section-kicker">One companion. More possibilities.</p>
+          <h2>Your next journey starts here.</h2>
+          <p>Everything you need to make more informed choices before you get on the road.</p>
+        </div>
+        <div class="feature-grid">
+          <a href="trip-planner.html" class="feature-card">
+            <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div>
+            <h3>Plan your journey</h3>
+            <p>Organize your trip and explore your travel options before you leave.</p>
+            <span class="card-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a href="stations.html" class="feature-card">
+            <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></div>
+            <h3>Find fuel stations</h3>
+            <p>Explore station locations and compare the demo prices shown in the app.</p>
+            <span class="card-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a href="ev.html" class="feature-card">
+            <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 10-13h-7l0-7Z"></path></svg></div>
+            <h3>Explore electric driving</h3>
+            <p>Discover the EV tools and charging-related features available in Fuel Buddy.</p>
+            <span class="card-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="bottom-line">FUEL BUDDY &nbsp; • &nbsp; SMARTER ROUTES. BETTER JOURNEYS.</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const nav = document.getElementById('site-nav');
+    const updateNav = () => nav.classList.toggle('scrolled', window.scrollY > 24);
+    window.addEventListener('scroll', updateNav, { passive: true });
+    updateNav();
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const authBtn = document.getElementById('auth-btn');
+      try {
+        const user = await checkAuth();
+        if (user) {
+          authBtn.textContent = 'DASHBOARD ↗';
+          authBtn.href = 'dashboard.html';
+        }
+      } catch (error) {
+        console.warn('Could not check authentication status:', error);
+      }
+    });
+  </script>
+</body>
+</html>

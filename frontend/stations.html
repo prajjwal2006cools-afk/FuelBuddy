@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071426">
+    <title>Find Stations | FUEL BUDDY</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        :root {
+            --fb-bg: #071426;
+            --fb-panel: rgba(13, 31, 56, 0.91);
+            --fb-panel-strong: #102846;
+            --fb-border: rgba(151, 190, 230, 0.17);
+            --fb-text: #f5f8ff;
+            --fb-muted: #a8bbd4;
+            --fb-orange: #35e6a1;
+            --fb-blue: #48d9c8;
+            --fb-green: #63e6be;
+            --fb-radius: 18px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body { min-height: 100%; }
+
+        body {
+            margin: 0;
+            color: var(--fb-text);
+            background:
+                radial-gradient(ellipse at 12% 15%, rgba(53, 230, 161, .11), transparent 32%),
+                radial-gradient(ellipse at 85% 75%, rgba(72, 217, 200, .13), transparent 38%),
+                var(--fb-bg);
+            overflow-x: hidden;
+        }
+
+        /* Soft ambient motion behind the page content. */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .ambient-orb {
+            position: absolute;
+            width: 360px;
+            height: 360px;
+            border-radius: 50%;
+            filter: blur(75px);
+            opacity: .14;
+            animation: drift 18s ease-in-out infinite alternate;
+        }
+
+        .ambient-orb.one {
+            background: #ff573f;
+            left: -150px;
+            top: 18%;
+        }
+
+        .ambient-orb.two {
+            background: #258bff;
+            right: -140px;
+            bottom: 4%;
+            animation-delay: -8s;
+        }
+
+        @keyframes drift {
+            from { transform: translate3d(0, 0, 0) scale(1); }
+            to { transform: translate3d(45px, -30px, 0) scale(1.12); }
+        }
+
+        .navbar {
+            position: fixed;
+            inset: 0 0 auto 0;
+            z-index: 1000;
+            min-height: 76px;
+            background: rgba(5, 16, 32, .91);
+            border-bottom: 1px solid var(--fb-border);
+            backdrop-filter: blur(18px);
+        }
+
+        .nav-container {
+            width: min(1440px, 100%);
+            min-height: 76px;
+            margin: auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand {
+            color: var(--fb-orange);
+            text-decoration: none;
+            font-weight: 900;
+            letter-spacing: .045em;
+            font-size: 1.25rem;
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: clamp(12px, 2.3vw, 30px);
+        }
+
+        .nav-link {
+            color: #dbe7f7;
+            text-decoration: none;
+            font-size: .92rem;
+            font-weight: 700;
+            transition: color .2s ease, transform .2s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--fb-orange);
+        }
+
+        .nav-link:hover { transform: translateY(-1px); }
+
+        .page-shell {
+            width: min(1600px, 100%);
+            margin: auto;
+            padding: 104px 22px 22px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 18px;
+            margin: 0 0 18px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--fb-green);
+            font-size: .76rem;
+            font-weight: 800;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--fb-green);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(99, 230, 190, .8);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 3vw, 2.55rem);
+            line-height: 1.12;
+            letter-spacing: -.035em;
+        }
+
+        .page-subtitle {
+            margin: 9px 0 0;
+            max-width: 650px;
+            color: var(--fb-muted);
+            line-height: 1.6;
+            font-size: .96rem;
+        }
+
+        .demo-note {
+            color: #ffdca5;
+            font-size: .78rem;
+            text-align: right;
+            max-width: 280px;
+            line-height: 1.5;
+        }
+
+        .map-layout {
+            display: grid;
+            grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+            gap: 16px;
+            min-height: min(720px, calc(100vh - 220px));
+        }
+
+        .sidebar {
+            min-height: 520px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--fb-border);
+            border-radius: var(--fb-radius);
+            background: var(--fb-panel);
+            box-shadow: 0 22px 70px rgba(0, 0, 0, .22);
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+        }
+
+        .sidebar-top {
+            padding: 19px;
+            border-bottom: 1px solid var(--fb-border);
+        }
+
+        .sidebar-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 13px;
+        }
+
+        .sidebar-title-row h2 {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .result-count {
+            border: 1px solid rgba(75, 183, 255, .25);
+            background: rgba(75, 183, 255, .1);
+            color: #a9ddff;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .search-wrap { position: relative; }
+
+        .search-icon {
+            position: absolute;
+            top: 50%;
+            left: 13px;
+            transform: translateY(-50%);
+            color: #a8bbd4;
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+
+        #station-search {
+            width: 100%;
+            min-height: 47px;
+            border: 1px solid rgba(163, 193, 225, .24);
+            border-radius: 12px;
+            background: rgba(5, 17, 33, .65);
+            color: white;
+            outline: none;
+            padding: 12px 13px 12px 40px;
+            font: inherit;
+            font-size: .9rem;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+        }
+
+        #station-search::placeholder { color: #8fa5bf; }
+
+        #station-search:focus {
+            border-color: var(--fb-blue);
+            box-shadow: 0 0 0 3px rgba(75, 183, 255, .13);
+            background: rgba(5, 17, 33, .9);
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 9px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            min-height: 43px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid transparent;
+            border-radius: 11px;
+            padding: 10px 12px;
+            font: inherit;
+            font-weight: 800;
+            font-size: .86rem;
+            cursor: pointer;
+            transition: transform .2s, filter .2s, background .2s, border-color .2s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+        }
+
+        .action-btn:active { transform: translateY(0); }
+
+        .action-btn.primary {
+            color: white;
+            background: linear-gradient(110deg, #10b981, #14b8a6);
+            box-shadow: 0 8px 24px rgba(53, 230, 161, .16);
+        }
+
+        .action-btn.secondary {
+            color: #d9efff;
+            border-color: rgba(75, 183, 255, .28);
+            background: rgba(75, 183, 255, .09);
+        }
+
+        .status-message {
+            margin: 10px 0 0;
+            min-height: 18px;
+            color: var(--fb-muted);
+            font-size: .78rem;
+            line-height: 1.5;
+        }
+
+        .station-list {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 140px;
+        }
+
+        .station-card {
+            position: relative;
+            border: 1px solid var(--fb-border);
+            border-radius: 15px;
+            padding: 15px;
+            background: linear-gradient(145deg, rgba(27, 55, 87, .76), rgba(12, 30, 53, .86));
+            cursor: pointer;
+            outline: none;
+            transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
+            animation: card-in .35s ease both;
+        }
+
+        @keyframes card-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .station-card:hover,
+        .station-card:focus-visible,
+        .station-card.is-active {
+            transform: translateY(-3px);
+            border-color: rgba(75, 183, 255, .8);
+            background: linear-gradient(145deg, rgba(29, 78, 119, .9), rgba(14, 39, 68, .96));
+            box-shadow: 0 12px 28px rgba(0, 0, 0, .2), 0 0 0 1px rgba(75, 183, 255, .12);
+        }
+
+        .station-card.is-active::before {
+            content: "";
+            position: absolute;
+            inset: 12px auto 12px -1px;
+            width: 3px;
+            border-radius: 0 5px 5px 0;
+            background: var(--fb-orange);
+        }
+
+        .station-card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .station-name {
+            margin: 0;
+            font-size: .99rem;
+            font-weight: 850;
+            line-height: 1.35;
+        }
+
+        .station-number {
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
+            color: #a8e0ff;
+            background: rgba(75, 183, 255, .12);
+            border: 1px solid rgba(75, 183, 255, .2);
+            font-size: .75rem;
+            font-weight: 900;
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 13px;
+        }
+
+        .price-box {
+            padding: 9px 10px;
+            background: rgba(3, 15, 29, .42);
+            border: 1px solid rgba(164, 194, 225, .09);
+            border-radius: 10px;
+        }
+
+        .price-label {
+            display: block;
+            color: var(--fb-muted);
+            font-size: .72rem;
+            margin-bottom: 4px;
+        }
+
+        .price-value {
+            font-weight: 850;
+            font-size: .98rem;
+        }
+
+        .price-value.petrol { color: #7df5c5; }
+        .price-value.diesel { color: #9edbff; }
+
+        .station-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            color: var(--fb-muted);
+            font-size: .76rem;
+        }
+
+        .amenity-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .amenity-chip {
+            color: #c8d9ec;
+            background: rgba(255, 255, 255, .055);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: .7rem;
+            text-transform: capitalize;
+        }
+
+        .empty-state {
+            margin: auto;
+            text-align: center;
+            color: var(--fb-muted);
+            padding: 28px 16px;
+            line-height: 1.6;
+        }
+
+        .empty-state strong {
+            display: block;
+            color: #eaf2ff;
+            margin-bottom: 6px;
+        }
+
+        .map-panel {
+            position: relative;
+            min-height: 520px;
+            overflow: hidden;
+            border: 1px solid var(--fb-border);
+            border-radius: var(--fb-radius);
+            background: #dbe6ee;
+            box-shadow: 0 22px 70px rgba(0, 0, 0, .22);
+        }
+
+        #map {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #dbe6ee;
+        }
+
+        .map-overlay {
+            position: absolute;
+            z-index: 500;
+            top: 15px;
+            left: 15px;
+            max-width: min(360px, calc(100% - 30px));
+            padding: 12px 15px;
+            color: #f5f8ff;
+            background: rgba(6, 20, 39, .92);
+            border: 1px solid rgba(255, 255, 255, .13);
+            border-radius: 13px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+            pointer-events: none;
+            backdrop-filter: blur(12px);
+        }
+
+        .map-overlay strong {
+            display: block;
+            font-size: .86rem;
+            margin-bottom: 3px;
+        }
+
+        .map-overlay span {
+            color: #b7c9df;
+            font-size: .76rem;
+            line-height: 1.4;
+        }
+
+        .map-legend {
+            position: absolute;
+            right: 15px;
+            bottom: 15px;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #eaf2ff;
+            background: rgba(6, 20, 39, .9);
+            border: 1px solid rgba(255, 255, 255, .13);
+            border-radius: 999px;
+            padding: 9px 12px;
+            font-size: .74rem;
+            pointer-events: none;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--fb-orange);
+            box-shadow: 0 0 10px rgba(53, 230, 161, .7);
+        }
+
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: #0d2038;
+            color: #f5f8ff;
+        }
+
+        .leaflet-popup-content { margin: 13px 15px; line-height: 1.6; }
+        .leaflet-popup-content b { color: #7df5c5; font-size: .95rem; }
+        .leaflet-container a.leaflet-popup-close-button { color: #dce9f8; }
+
+        .fb-marker-wrap {
+            background: transparent;
+            border: 0;
+        }
+
+        .fb-marker {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 900;
+            background: linear-gradient(145deg, #35e6a1, #0dba83);
+            border: 3px solid white;
+            border-radius: 50% 50% 50% 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, .35);
+            transform: rotate(-45deg);
+            transition: transform .2s, filter .2s;
+        }
+
+        .fb-marker span { transform: rotate(45deg); }
+
+        .fb-marker.active {
+            filter: drop-shadow(0 0 7px rgba(255, 87, 63, .85));
+            transform: rotate(-45deg) scale(1.18);
+        }
+
+        .user-location-dot {
+            width: 19px;
+            height: 19px;
+            background: #248cff;
+            border: 4px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 0 8px rgba(36, 140, 255, .18), 0 4px 15px rgba(0, 0, 0, .3);
+        }
+
+        .leaflet-control-zoom a {
+            color: #102846 !important;
+        }
+
+        .footer-note {
+            color: var(--fb-muted);
+            text-align: center;
+            font-size: .75rem;
+            margin: 15px 0 0;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .page-shell { padding: 94px 14px 16px; }
+            .map-layout {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+            .sidebar { min-height: 440px; }
+            .station-list { max-height: 390px; }
+            .map-panel { min-height: 55vh; }
+            .page-heading { align-items: flex-start; flex-direction: column; }
+            .demo-note { text-align: left; max-width: none; }
+        }
+
+        @media (max-width: 560px) {
+            .navbar, .nav-container { min-height: 66px; }
+            .nav-container { padding: 0 13px; gap: 12px; flex-wrap: wrap; }
+            .brand { font-size: 1rem; }
+            .nav-links { gap: 12px; }
+            .nav-link { font-size: .76rem; }
+            .page-shell { padding-top: 111px; }
+            .sidebar-top { padding: 14px; }
+            .map-panel { min-height: 440px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
+        /* Premium polish layer: richer lighting, responsive motion, and clearer hierarchy. */
+        body::before {
+            content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .32;
+            background-image: linear-gradient(rgba(130,170,210,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(130,170,210,.035) 1px, transparent 1px);
+            background-size: 44px 44px; mask-image: linear-gradient(to bottom, black, transparent 88%);
+        }
+        .navbar { background: rgba(4,13,27,.78); box-shadow: 0 10px 40px rgba(0,0,0,.16); }
+        .brand { display: inline-flex; align-items: center; gap: 9px; text-shadow: 0 0 22px rgba(255,87,63,.18); }
+        .brand::after { content: "SMART FUEL • SMARTER TRIPS"; display: block; color: #8198b5; font-size: .58rem; letter-spacing: .14em; font-weight: 800; margin-left: 2px; padding-left: 11px; border-left: 1px solid rgba(151,190,230,.25); }
+        .nav-link { position: relative; padding: 9px 0; }
+        .nav-link::after { content: ""; position: absolute; left: 0; right: 100%; bottom: 1px; height: 2px; border-radius: 3px; background: linear-gradient(90deg,var(--fb-orange),#72f7ca); transition: right .22s ease; }
+        .nav-link:hover::after, .nav-link.active::after { right: 0; }
+        .page-heading { position: relative; padding: 22px 24px; margin-bottom: 20px; border: 1px solid rgba(151,190,230,.12); border-radius: 22px; background: radial-gradient(ellipse at 0% 0%,rgba(255,87,63,.13),transparent 45%),linear-gradient(110deg,rgba(17,40,68,.72),rgba(8,24,44,.28)); box-shadow: inset 0 1px 0 rgba(255,255,255,.035),0 18px 50px rgba(0,0,0,.12); overflow: hidden; }
+        .page-heading::after { content: ""; position: absolute; width: 260px; height: 260px; right: 10%; top: -190px; border-radius: 50%; border: 1px solid rgba(75,183,255,.18); box-shadow: 0 0 0 28px rgba(75,183,255,.025),0 0 0 58px rgba(75,183,255,.018); pointer-events: none; }
+        h1 { background: linear-gradient(100deg,#fff 15%,#c8e7ff 68%,#83e9cf); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .eyebrow { padding: 7px 11px; border: 1px solid rgba(99,230,190,.18); border-radius: 999px; background: rgba(99,230,190,.055); width: fit-content; }
+        .sidebar,.map-panel { box-shadow: 0 25px 80px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035); transition: border-color .25s ease,box-shadow .25s ease; }
+        .sidebar:hover,.map-panel:hover { border-color: rgba(117,180,232,.3); box-shadow: 0 28px 90px rgba(0,0,0,.29),0 0 35px rgba(75,183,255,.035); }
+        .sidebar-top { background: linear-gradient(135deg,rgba(255,255,255,.025),transparent 65%); }
+        .result-count { box-shadow: inset 0 1px 0 rgba(255,255,255,.04); }
+        .action-btn { position: relative; overflow: hidden; }
+        .action-btn::before { content: ""; position: absolute; top: -80%; left: -35%; width: 24%; height: 260%; transform: rotate(24deg); background: rgba(255,255,255,.17); transition: left .45s ease; pointer-events: none; }
+        .action-btn:hover::before { left: 120%; }
+        .action-btn.primary { background-size: 180% 100%; background-image: linear-gradient(110deg,#0dba83 0%,#20d9a0 48%,#0dba83 100%); transition: transform .2s ease,filter .2s ease,box-shadow .2s ease; }
+        .action-btn.primary:hover { box-shadow: 0 12px 30px rgba(255,87,63,.28); }
+        .action-btn.secondary:hover { border-color: rgba(75,183,255,.58); background: rgba(75,183,255,.15); box-shadow: 0 8px 24px rgba(75,183,255,.08); }
+        #station-search { box-shadow: inset 0 2px 8px rgba(0,0,0,.12); }
+        .station-card { background: radial-gradient(ellipse at 100% 0%,rgba(75,183,255,.06),transparent 48%),linear-gradient(145deg,rgba(27,55,87,.76),rgba(12,30,53,.86)); }
+        .station-card:hover,.station-card:focus-visible,.station-card.is-active { box-shadow: 0 16px 34px rgba(0,0,0,.24),0 0 0 1px rgba(75,183,255,.15),0 0 24px rgba(75,183,255,.055); }
+        .price-box { transition: transform .2s ease,border-color .2s ease,background .2s ease; }
+        .station-card:hover .price-box { border-color: rgba(164,194,225,.16); background: rgba(3,15,29,.56); }
+        .price-value { letter-spacing: -.025em; }
+        .amenity-chip { transition: background .2s ease,border-color .2s ease,color .2s ease; }
+        .station-card:hover .amenity-chip { border-color: rgba(255,255,255,.13); color: #eef6ff; }
+        .map-overlay { border-color: rgba(255,255,255,.2); box-shadow: 0 12px 32px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.05); }
+        .map-legend { box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+        .fb-marker { box-shadow: 0 5px 15px rgba(0,0,0,.32),0 0 0 3px rgba(255,255,255,.12); }
+        .fb-marker.active { background: linear-gradient(145deg,#63e6be,#1fae91); filter: drop-shadow(0 0 9px rgba(99,230,190,.75)); }
+        .footer-note { opacity: .85; }
+        @media (max-width: 560px) { .brand::after { display: none; } .page-heading { padding: 18px 16px; border-radius: 17px; } }
+
+    </style>
+</head>
+<body>
+    <div class="ambient-bg" aria-hidden="true">
+        <div class="ambient-orb one"></div>
+        <div class="ambient-orb two"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">⛽ FUEL BUDDY</a>
+            <div class="nav-links">
+                <a href="fuel-guide.html" class="nav-link">Fuel Guide</a>
+                <a href="stations.html" class="nav-link active" aria-current="page">Stations</a>
+                <a href="ev.html" class="nav-link">EV</a>
+                <a href="trip-planner.html" class="nav-link">Trip Planner</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page-shell">
+        <header class="page-heading">
+            <div>
+                <div class="eyebrow"><span class="live-dot"></span> Explore nearby fuel</div>
+                <h1>Find your fuel.</h1>
+                <p class="page-subtitle">Search stations, compare fuel prices, and select a station to see its exact marker on the map.</p>
+            </div>
+            <div class="demo-note">Demo data: station names, locations, and prices are illustrative and are not verified live listings.</div>
+        </header>
+
+        <section class="map-layout" aria-label="Fuel station finder">
+            <aside class="sidebar">
+                <div class="sidebar-top">
+                    <div class="sidebar-title-row">
+                        <h2>Nearby stations</h2>
+                        <span class="result-count" id="result-count">Loading…</span>
+                    </div>
+
+                    <div class="search-wrap">
+                        <span class="search-icon" aria-hidden="true">⌕</span>
+                        <input id="station-search" type="search" placeholder="Search name or amenity…" autocomplete="off" aria-label="Search stations by name or amenity">
+                    </div>
+
+                    <div class="button-row">
+                        <button type="button" class="action-btn primary" id="locate-btn">⌖ Use My Location</button>
+                        <button type="button" class="action-btn secondary" id="show-all-btn">◎ Show All Stations</button>
+                    </div>
+                    <p class="status-message" id="status-message" role="status" aria-live="polite">Loading station data…</p>
+                </div>
+
+                <div class="station-list" id="station-list" aria-live="polite">
+                    <div class="empty-state"><strong>Loading stations…</strong>Please wait a moment.</div>
+                </div>
+            </aside>
+
+            <div class="map-panel">
+                <div id="map" aria-label="Map showing fuel station locations"></div>
+                <div class="map-overlay">
+                    <strong id="map-title">Explore the map</strong>
+                    <span id="map-subtitle">Select a station card or marker to view its location.</span>
+                </div>
+                <div class="map-legend"><span class="legend-dot"></span> Demo fuel station</div>
+            </div>
+        </section>
+
+        <p class="footer-note">Map tiles © OpenStreetMap contributors. Your location is only used if you press “Use My Location” and allow browser access.</p>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const DEFAULT_LOCATION = { lat: 12.9716, lng: 77.5946 };
+            const DEFAULT_RADIUS_KM = 5;
+
+            const listEl = document.getElementById('station-list');
+            const searchEl = document.getElementById('station-search');
+            const countEl = document.getElementById('result-count');
+            const statusEl = document.getElementById('status-message');
+            const locateBtn = document.getElementById('locate-btn');
+            const showAllBtn = document.getElementById('show-all-btn');
+            const mapTitle = document.getElementById('map-title');
+            const mapSubtitle = document.getElementById('map-subtitle');
+
+            let allStations = [];
+            let visibleStations = [];
+            let currentLocation = { ...DEFAULT_LOCATION };
+            let userMarker = null;
+            let activeStationId = null;
+            const markerById = new Map();
+            const cardById = new Map();
+
+            const map = L.map('map', {
+                zoomControl: true,
+                scrollWheelZoom: true
+            }).setView([DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const userIcon = L.divIcon({
+                className: '',
+                html: '<div class="user-location-dot"></div>',
+                iconSize: [19, 19],
+                iconAnchor: [9, 9]
+            });
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, char => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[char]);
+            }
+
+            function formatPrice(value) {
+                const number = Number(value);
+                return Number.isFinite(number) ? `₹${number.toFixed(2)}` : 'N/A';
+            }
+
+            function haversineKm(a, b) {
+                const toRad = degrees => degrees * Math.PI / 180;
+                const dLat = toRad(b.lat - a.lat);
+                const dLng = toRad(b.lng - a.lng);
+                const lat1 = toRad(a.lat);
+                const lat2 = toRad(b.lat);
+                const value = Math.sin(dLat / 2) ** 2
+                    + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+                return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+            }
+
+            function stationDistance(station) {
+                if (Number.isFinite(Number(station.distance_km))) {
+                    return Number(station.distance_km);
+                }
+                return haversineKm(currentLocation, {
+                    lat: Number(station.lat),
+                    lng: Number(station.lng)
+                });
+            }
+
+            function stationIcon(id, active = false) {
+                return L.divIcon({
+                    className: 'fb-marker-wrap',
+                    html: `<div class="fb-marker${active ? ' active' : ''}"><span>${escapeHtml(id)}</span></div>`,
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 32],
+                    popupAnchor: [0, -30]
+                });
+            }
+
+            function validCoordinates(station) {
+                return Number.isFinite(Number(station.lat))
+                    && Number.isFinite(Number(station.lng))
+                    && Number(station.lat) >= -90
+                    && Number(station.lat) <= 90
+                    && Number(station.lng) >= -180
+                    && Number(station.lng) <= 180;
+            }
+
+            function popupHtml(station) {
+                const amenities = Array.isArray(station.amenities) ? station.amenities : [];
+                return `
+                    <div>
+                        <b>${escapeHtml(station.name)}</b><br>
+                        Petrol: ${formatPrice(station.price_petrol)}<br>
+                        Diesel: ${formatPrice(station.price_diesel)}<br>
+                        Distance: ${stationDistance(station).toFixed(2)} km
+                        ${amenities.length ? `<br><small>${amenities.map(escapeHtml).join(' · ')}</small>` : ''}
+                    </div>`;
+            }
+
+            function addStationMarker(station) {
+                if (!validCoordinates(station)) return;
+
+                const marker = L.marker(
+                    [Number(station.lat), Number(station.lng)],
+                    { icon: stationIcon(station.id), title: station.name, alt: station.name }
+                ).addTo(map);
+
+                marker.bindPopup(popupHtml(station));
+                marker.on('click', () => activateStation(station.id, { pan: false, openPopup: false }));
+                markerById.set(String(station.id), marker);
+            }
+
+            function activateStation(id, options = {}) {
+                const key = String(id);
+                const station = allStations.find(item => String(item.id) === key);
+                if (!station || !validCoordinates(station)) return;
+
+                activeStationId = station.id;
+
+                cardById.forEach((card, cardId) => {
+                    const active = String(cardId) === key;
+                    card.classList.toggle('is-active', active);
+                    card.setAttribute('aria-pressed', String(active));
+                });
+
+                markerById.forEach((marker, markerId) => {
+                    const active = markerId === key;
+                    marker.setIcon(stationIcon(markerId, active));
+                    if (active && options.openPopup !== false) marker.openPopup();
+                    else if (!active) marker.closePopup();
+                });
+
+                mapTitle.textContent = station.name;
+                mapSubtitle.textContent = `${stationDistance(station).toFixed(2)} km from the selected search location · Petrol ${formatPrice(station.price_petrol)}`;
+
+                const marker = markerById.get(key);
+                if (marker && options.pan !== false) {
+                    map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), 15), { duration: .55 });
+                    if (options.openPopup !== false) marker.openPopup();
+                }
+
+                const card = cardById.get(key);
+                if (card && options.scrollCard) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            function createStationCard(station, index) {
+                const card = document.createElement('article');
+                card.className = 'station-card';
+                card.tabIndex = 0;
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-pressed', 'false');
+                card.style.animationDelay = `${Math.min(index * 45, 240)}ms`;
+
+                const amenities = Array.isArray(station.amenities) ? station.amenities : [];
+                card.innerHTML = `
+                    <div class="station-card-head">
+                        <h3 class="station-name">${escapeHtml(station.name || 'Unnamed station')}</h3>
+                        <span class="station-number">${escapeHtml(station.id)}</span>
+                    </div>
+                    <div class="price-grid">
+                        <div class="price-box">
+                            <span class="price-label">Petrol / litre</span>
+                            <span class="price-value petrol">${formatPrice(station.price_petrol)}</span>
+                        </div>
+                        <div class="price-box">
+                            <span class="price-label">Diesel / litre</span>
+                            <span class="price-value diesel">${formatPrice(station.price_diesel)}</span>
+                        </div>
+                    </div>
+                    <div class="station-meta">
+                        <span>⌖ ${stationDistance(station).toFixed(2)} km away</span>
+                        <span>View on map ↗</span>
+                    </div>
+                    ${amenities.length ? `<div class="amenity-list">${amenities.map(item => `<span class="amenity-chip">${escapeHtml(item)}</span>`).join('')}</div>` : ''}
+                `;
+
+                const selectCard = () => activateStation(station.id, { pan: true, openPopup: true });
+                card.addEventListener('click', selectCard);
+                card.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        selectCard();
+                    }
+                });
+
+                card.addEventListener('mouseenter', () => {
+                    const marker = markerById.get(String(station.id));
+                    if (marker) marker.setIcon(stationIcon(station.id, true));
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    if (String(activeStationId) !== String(station.id)) {
+                        const marker = markerById.get(String(station.id));
+                        if (marker) marker.setIcon(stationIcon(station.id, false));
+                    }
+                });
+
+                cardById.set(String(station.id), card);
+                return card;
+            }
+
+            function renderStations() {
+                const query = searchEl.value.trim().toLowerCase();
+                visibleStations = allStations.filter(station => {
+                    const amenities = Array.isArray(station.amenities) ? station.amenities.join(' ') : '';
+                    const searchable = `${station.name || ''} ${amenities}`.toLowerCase();
+                    return searchable.includes(query);
+                });
+
+                listEl.replaceChildren();
+                cardById.clear();
+
+                visibleStations.forEach((station, index) => {
+                    listEl.appendChild(createStationCard(station, index));
+                });
+
+                countEl.textContent = `${visibleStations.length} found`;
+
+                if (!visibleStations.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-state';
+                    empty.innerHTML = '<strong>No matching stations</strong>Try a different station name or amenity.';
+                    listEl.appendChild(empty);
+                }
+
+                if (activeStationId !== null && !visibleStations.some(s => String(s.id) === String(activeStationId))) {
+                    activeStationId = null;
+                    markerById.forEach(marker => marker.closePopup());
+                }
+            }
+
+            function updateUserMarker(lat, lng, message) {
+                currentLocation = { lat, lng };
+
+                if (userMarker) userMarker.setLatLng([lat, lng]);
+                else userMarker = L.marker([lat, lng], { icon: userIcon, title: 'Your current location', zIndexOffset: 1000 })
+                    .addTo(map)
+                    .bindPopup('<b>Your current location</b>');
+
+                userMarker.openPopup();
+                map.flyTo([lat, lng], 14, { duration: .65 });
+                statusEl.textContent = message;
+            }
+
+            async function loadStations(lat = currentLocation.lat, lng = currentLocation.lng, radiusKm = DEFAULT_RADIUS_KM) {
+                statusEl.textContent = 'Loading stations near this location…';
+                listEl.innerHTML = '<div class="empty-state"><strong>Loading stations…</strong>Please wait a moment.</div>';
+                locateBtn.disabled = true;
+                locateBtn.style.opacity = '.7';
+
+                try {
+                    // Keep the existing API helper and backend route.
+                    const query = `?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&radius_km=${encodeURIComponent(radiusKm)}`;
+                    const stations = await fetchAPI(`/stations/${query}`);
+
+                    if (!Array.isArray(stations)) {
+                        throw new Error('The stations API returned an unexpected response.');
+                    }
+
+                    allStations = stations.filter(validCoordinates).map(station => ({
+                        ...station,
+                        amenities: Array.isArray(station.amenities) ? station.amenities : []
+                    }));
+
+                    markerById.forEach(marker => map.removeLayer(marker));
+                    markerById.clear();
+                    cardById.clear();
+                    allStations.forEach(addStationMarker);
+
+                    renderStations();
+
+                    if (allStations.length) {
+                        const stationBounds = L.latLngBounds(
+                            allStations.map(station => [Number(station.lat), Number(station.lng)])
+                        );
+                        if (stationBounds.isValid()) {
+                            map.fitBounds(stationBounds, { padding: [55, 55], maxZoom: 14 });
+                        }
+                        statusEl.textContent = `Showing ${allStations.length} demo station${allStations.length === 1 ? '' : 's'} within ${radiusKm} km.`;
+                        mapTitle.textContent = 'Explore nearby stations';
+                        mapSubtitle.textContent = 'Select a card or marker to focus the map.';
+                    } else {
+                        statusEl.textContent = `No demo stations found within ${radiusKm} km. Try a wider search radius or return to the demo map location.`;
+                    }
+                } catch (error) {
+                    console.error('Failed to load stations:', error);
+                    allStations = [];
+                    markerById.forEach(marker => map.removeLayer(marker));
+                    markerById.clear();
+                    renderStations();
+                    statusEl.textContent = 'Could not load stations. Check that the backend is running, then refresh this page.';
+                    if (typeof showToast === 'function') {
+                        showToast('Failed to load stations', 'error');
+                    }
+                } finally {
+                    locateBtn.disabled = false;
+                    locateBtn.style.opacity = '1';
+                    setTimeout(() => map.invalidateSize(), 100);
+                }
+            }
+
+            searchEl.addEventListener('input', renderStations);
+
+            locateBtn.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    statusEl.textContent = 'This browser does not support location access.';
+                    return;
+                }
+
+                statusEl.textContent = 'Requesting location permission…';
+                navigator.geolocation.getCurrentPosition(
+                    async position => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        updateUserMarker(lat, lng, 'Your location was found. Searching for demo stations nearby…');
+                        await loadStations(lat, lng, DEFAULT_RADIUS_KM);
+                        if (userMarker) userMarker.setLatLng([lat, lng]);
+                    },
+                    error => {
+                        const messages = {
+                            1: 'Location permission was denied. Allow location access in your browser to use this feature.',
+                            2: 'Your location could not be determined. Check device location settings and try again.',
+                            3: 'Location request timed out. Please try again.'
+                        };
+                        statusEl.textContent = messages[error.code] || 'Unable to get your location.';
+                    },
+                    { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+                );
+            });
+
+            showAllBtn.addEventListener('click', () => {
+                searchEl.value = '';
+                renderStations();
+
+                const points = allStations
+                    .filter(validCoordinates)
+                    .map(station => [Number(station.lat), Number(station.lng)]);
+
+                if (points.length) {
+                    const bounds = L.latLngBounds(points);
+                    if (userMarker) bounds.extend(userMarker.getLatLng());
+                    map.fitBounds(bounds, { padding: [55, 55], maxZoom: 14 });
+                    mapTitle.textContent = 'All stations';
+                    mapSubtitle.textContent = `Showing ${points.length} demo station${points.length === 1 ? '' : 's'} on the map.`;
+                } else {
+                    map.setView([currentLocation.lat, currentLocation.lng], 12);
+                }
+                statusEl.textContent = `Showing all ${allStations.length} stations returned by the API.`;
+            });
+
+            loadStations(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng, DEFAULT_RADIUS_KM);
+
+            // Leaflet can initialize before a browser finishes laying out the panel.
+            window.addEventListener('resize', () => map.invalidateSize());
+            setTimeout(() => map.invalidateSize(), 250);
+        });
+    </script>
+</body>
+</html>

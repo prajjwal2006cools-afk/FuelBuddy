@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuel Guide | FUEL BUDDY</title>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+
+
+    <style>
+        .header-spacer {
+            height: 80px;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 992px) {
+            .grid-layout {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        /* FUEL BUDDY logo and icon */
+        .navbar .brand,
+        .navbar .brand:link,
+        .navbar .brand:visited,
+        .navbar .brand:hover,
+        .navbar .brand:active {
+            color: #35e69a !important;
+        }
+
+        .navbar .brand svg,
+        .navbar .brand svg path {
+            color: #35e69a !important;
+            stroke: #35e69a !important;
+        }
+
+        /* Fuel guide headings */
+        #fuel-metadata-container h1,
+        #fuel-metadata-container h2,
+        #fuel-metadata-container h3,
+        #fuel-metadata-container h4,
+        #fuel-metadata-container h5,
+        #fuel-metadata-container h6 {
+            color: #35e69a !important;
+        }
+
+        /* Override common inline red styles */
+        #fuel-metadata-container [style*="color: red"],
+        #fuel-metadata-container [style*="color:red"],
+        #fuel-metadata-container [style*="color: #f00"],
+        #fuel-metadata-container [style*="color:#f00"],
+        #fuel-metadata-container [style*="color: rgb(255, 0, 0)"],
+        #fuel-metadata-container [style*="color: rgb(255,0,0)"] {
+            color: #35e69a !important;
+        }
+
+        #fuel-metadata-container p,
+        #fuel-metadata-container li {
+            color: #a7c1b1;
+        }
+
+        #fuel-metadata-container strong,
+        #fuel-metadata-container b {
+            color: #effcf4;
+        }
+
+        #fuel-metadata-container a {
+            color: #35e69a !important;
+        }
+    </style>
+
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 22v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"></path>
+                    <path d="M6 12v-4a6 6 0 0 1 12 0v4"></path>
+                    <path d="M12 9v.01"></path>
+                </svg>
+                FUEL BUDDY
+            </a>
+
+            <div class="nav-links">
+                <a href="fuel-guide.html" class="nav-link" style="color:var(--primary-color);">Fuel Guide</a>
+                <a href="stations.html" class="nav-link">Stations</a>
+                <a href="ev.html" class="nav-link">EV</a>
+                <a href="trip-planner.html" class="nav-link">Trip Planner</a>
+
+            </div>
+        </div>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <main class="container mb-2">
+        <h1 class="text-center mt-2 mb-2">The Ultimate Fuel Guide</h1>
+
+        <div class="grid-layout">
+            <div>
+                <div id="fuel-metadata-container">
+                    <!-- Fuel guide content is loaded by js/fuel.js -->
+                </div>
+            </div>
+
+            <div>
+                <div class="glass-card sticky-sidebar">
+                    <h3>Unit Converter</h3>
+
+                    <p class="text-light mb-1">
+                        Convert litres to gallons or kilograms based on density.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label" for="liters">Litres (L)</label>
+                        <input type="number" id="liters" class="form-control" placeholder="10">
+                    </div>
+
+                    <button id="convert-btn" class="btn btn-secondary" style="width:100%;">
+                        Convert
+                    </button>
+
+                    <div id="convert-result" class="mt-1"
+                        style="background:var(--bg-color); padding:1rem; border-radius:8px;" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/fuel.js"></script>
+
+    <!-- Ensure dynamically generated headings use the emerald theme -->
+    <script>
+        const fuelContainer = document.getElementById("fuel-metadata-container");
+
+        function applyFuelHeadingTheme() {
+            if (!fuelContainer) return;
+
+            fuelContainer.querySelectorAll(
+                "h1, h2, h3, h4, h5, h6"
+            ).forEach((heading) => {
+                heading.style.setProperty("color", "#35e69a", "important");
+            });
+        }
+
+        if (fuelContainer) {
+            const observer = new MutationObserver(applyFuelHeadingTheme);
+            observer.observe(fuelContainer, {
+                childList: true,
+                subtree: true
+            });
+
+            applyFuelHeadingTheme();
+        }
+    </script>
+</body>
+
+</html>

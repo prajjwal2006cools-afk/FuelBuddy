@@ -1,0 +1,181 @@
+@import 'variables.css';
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 14px rgba(255, 77, 46, 0.4);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 77, 46, 0.5);
+  color: white;
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #1a2a50;
+  transform: translateY(-2px);
+  color: white;
+}
+
+/* Glass Card */
+.glass-card {
+  background: var(--glass-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  padding: 2rem;
+}
+
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 1rem 0;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.brand {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: var(--primary-color);
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  font-family: var(--font-body);
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(255, 77, 46, 0.2);
+}
+
+/* Fuel Buddy emerald theme overrides */
+:root {
+  --primary-color: #35e69a;
+  --secondary-color: #35e69a;
+  --accent-color: #35e69a;
+}
+
+/* Navbar brand and logo */
+.navbar .brand,
+.navbar .brand:link,
+.navbar .brand:visited {
+  color: #35e69a !important;
+}
+
+.navbar .brand svg,
+.navbar .brand svg path {
+  stroke: #35e69a !important;
+}
+
+/* Primary action buttons */
+button.btn-primary,
+button.btn-secondary,
+.btn-primary,
+.btn-secondary,
+button[type="submit"],
+input[type="submit"] {
+  background: #35e69a !important;
+  border-color: #35e69a !important;
+  color: #071812 !important;
+}
+
+/* Hover state */
+button.btn-primary:hover,
+button.btn-secondary:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+button[type="submit"]:hover,
+input[type="submit"]:hover {
+  background: #65efb0 !important;
+  border-color: #65efb0 !important;
+  color: #071812 !important;
+}
+
+/* Override old orange inline styles on common actions */
+[style*="#ff4"],
+[style*="#FF4"],
+[style*="orangered"] {
+  color: #35e69a !important;
+  border-color: #35e69a !important;
+}
+
+/* Active navigation */
+.navbar .nav-link.active,
+.navbar .nav-link:hover {
+  color: #35e69a !important;
+}
